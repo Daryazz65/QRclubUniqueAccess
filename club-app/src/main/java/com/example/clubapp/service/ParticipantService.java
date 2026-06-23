@@ -2,64 +2,56 @@ package com.example.clubapp.service;
 
 import com.example.clubapp.dto.ParticipantDto;
 import com.example.clubapp.entity.Participant;
+import com.example.clubapp.exception.ResourceNotFoundException;
+import com.example.clubapp.mapper.ParticipantMapper;
 import com.example.clubapp.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ParticipantService {
-    private final ParticipantRepository participantRepository;
 
-    public List<ParticipantDto> getAll(){
-        return participantRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .toList();
+    private final ParticipantRepository participantRepository;
+    private final ParticipantMapper participantMapper;
+
+    public Page<ParticipantDto> getAll(Pageable pageable) {
+        return participantRepository.findAll(pageable)
+                .map(participantMapper::toDto);
     }
 
-    public ParticipantDto getById(Long id){
+    public ParticipantDto getById(Long id) {
         Participant participant = participantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Участник не найден:" + id));
-        return toDto(participant);
+                .orElseThrow(() -> new ResourceNotFoundException("Участник", id));
+        return participantMapper.toDto(participant);
     }
 
     @Transactional
     public ParticipantDto create(ParticipantDto dto) {
-        Participant participant = Participant.builder()
-                .firstName(dto.getFirstName())
-                .lastName(dto.getLastName())
-                .middleName(dto.getMiddleName())
-                .build();
-        return toDto(participantRepository.save(participant));
+        Participant participant = participantMapper.toEntity(dto);
+        return participantMapper.toDto(participantRepository.save(participant));
     }
 
     @Transactional
     public ParticipantDto update(Long id, ParticipantDto dto) {
         Participant participant = participantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Участник не найден: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Участник", id));
 
-        participant.setFirstName(dto.getFirstName());
-        participant.setLastName(dto.getLastName());
-        participant.setMiddleName(dto.getMiddleName());
+        participant.setFirstName(dto.firstName());
+        participant.setLastName(dto.lastName());
+        participant.setMiddleName(dto.middleName());
 
-        return toDto(participantRepository.save(participant));
+        return participantMapper.toDto(participantRepository.save(participant));
     }
 
     @Transactional
     public void delete(Long id) {
+        if (!participantRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Участник", id);
+        }
         participantRepository.deleteById(id);
-    }
-
-    private ParticipantDto toDto(Participant participant) {
-        return ParticipantDto.builder()
-                .id(participant.getId())
-                .firstName(participant.getFirstName())
-                .lastName(participant.getLastName())
-                .middleName(participant.getMiddleName())
-                .build();
     }
 }

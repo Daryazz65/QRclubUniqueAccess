@@ -3,21 +3,23 @@ package com.example.clubapp.controller;
 import com.example.clubapp.dto.ParticipantDto;
 import com.example.clubapp.service.ParticipantService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/participants")
+@RequestMapping("/api/v1/participants")
 @RequiredArgsConstructor
 public class ParticipantController {
 
     private final ParticipantService participantService;
 
     @GetMapping
-    public ResponseEntity<List<ParticipantDto>> getAll() {
-        return ResponseEntity.ok(participantService.getAll());
+    public ResponseEntity<Page<ParticipantDto>> getAll(
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(participantService.getAll(pageable));
     }
 
     @GetMapping("/{id}")

@@ -6,20 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/qrcodes")
+@RequestMapping("/api/v1/qrcodes")
 @RequiredArgsConstructor
 public class QrCodeController {
 
     private final QrCodeService qrCodeService;
-
-    @GetMapping
-    public ResponseEntity<List<QrCodeDto>> getAll() {
-        return ResponseEntity.ok(qrCodeService.getAll());
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<QrCodeDto> getById(@PathVariable Long id) {
